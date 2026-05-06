@@ -15,7 +15,7 @@ This app replaces our Hello Fresh subscription with a custom, cost-free system. 
 
 | Layer | Tool |
 |---|---|
-| Framework | [Next.js 14](https://nextjs.org) (App Router) |
+| Framework | [Next.js 16](https://nextjs.org) (App Router) |
 | Styling | [Tailwind CSS](https://tailwindcss.com) |
 | Auth + DB | [Supabase](https://supabase.com) |
 | Hosting | [Vercel](https://vercel.com) |
