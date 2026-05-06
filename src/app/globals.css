@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+/* Tells the browser to render native UI (scrollbars, form control defaults,
+   text selection colors) using dark-aware styles when the user prefers dark.
+   Without this, a dark <input> can show light browser-default chrome. */
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+}

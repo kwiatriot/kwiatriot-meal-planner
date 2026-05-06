@@ -49,5 +49,5 @@ export async function addRecipe(formData: FormData): Promise<{ error: string } |
 
   if (error) return { error: error.message }
 
-  redirect('/meal-selector')
+  redirect('/recipes')
 }

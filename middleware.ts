@@ -32,7 +32,9 @@ export async function middleware(request: NextRequest) {
 
   // Unauthenticated users can't access protected routes
   const isProtected =
-    pathname.startsWith('/dashboard') || pathname.startsWith('/meal-selector')
+    pathname.startsWith('/dashboard') || 
+    pathname.startsWith('/meal-selector') ||
+    pathname.startsWith('/recipes')
   if (!user && isProtected) {
     return NextResponse.redirect(new URL('/login', request.url))
   }

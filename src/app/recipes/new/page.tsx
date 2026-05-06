@@ -1,20 +1,3 @@
-// "use client" is needed here because this component uses useState + event handlers.
-//
-// Python-dev note — controlled inputs vs Django forms:
-//   Django renders a form from the server, the browser posts it, and Django re-renders
-//   with errors. There is no live JS state between keystrokes.
-//
-//   In React, every <input value={x} onChange={...}> ties the DOM to a JS variable (x).
-//   React re-renders on each keystroke, keeping the displayed value in sync with state.
-//   This is "controlled" (React owns the value) vs "uncontrolled" (the DOM owns it).
-//
-//   Django analogy: imagine a Django form where every field runs form.is_valid() and
-//   re-renders after each character. Controlled inputs give you that live feedback
-//   (error validation, dependent fields, preview text) without a round-trip.
-//
-//   The trade-off: you need useState for every field. For a simple insert-only form
-//   like this one you could skip useState and use a plain <form action={serverAction}>,
-//   but we need the error state variable to show inline errors, so useState it is.
 'use client'
 
 import { useState } from 'react'
@@ -27,13 +10,14 @@ const CATEGORIES: GroceryCategory[] = ['produce', 'proteins', 'dairy', 'grains',
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-gray-300">{label}</label>
       {children}
     </div>
   )
 }
 
-const inputCls = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+const inputCls =
+  'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500'
 const textareaCls = `${inputCls} resize-y min-h-[80px]`
 
 export default function NewRecipePage() {
@@ -47,7 +31,6 @@ export default function NewRecipePage() {
 
     const result = await addRecipe(new FormData(e.currentTarget))
 
-    // addRecipe redirects on success, so we only get here on error
     if (result && 'error' in result) {
       setError(result.error)
       setSubmitting(false)
@@ -55,17 +38,19 @@ export default function NewRecipePage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <main className="min-h-screen bg-gray-50 p-4 sm:p-6 dark:bg-gray-950">
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Add Recipe</h1>
-          <a href="/meal-selector" className="text-sm text-blue-600 hover:underline">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Add Recipe</h1>
+          <a href="/recipes" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
             ← Back to library
           </a>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5">
-          {/* ── Basics ── */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-5 dark:bg-gray-900 dark:border-gray-800"
+        >
           <Field label="Name *">
             <input name="name" type="text" required className={inputCls} placeholder="e.g. Lemon Herb Salmon" />
           </Field>
@@ -82,7 +67,6 @@ export default function NewRecipePage() {
             <textarea name="description" className={textareaCls} placeholder="Short summary of the dish" />
           </Field>
 
-          {/* ── Timing & servings ── */}
           <div className="grid grid-cols-3 gap-4">
             <Field label="Prep (min)">
               <input name="prep_time_min" type="number" min="0" className={inputCls} placeholder="15" />
@@ -95,9 +79,8 @@ export default function NewRecipePage() {
             </Field>
           </div>
 
-          {/* ── Ingredients ── */}
           <Field label="Ingredients">
-            <p className="text-xs text-gray-400 mb-1">
+            <p className="text-xs text-gray-400 mb-1 dark:text-gray-500">
               One per line: <code>name | quantity | unit | category</code>
               <br />
               Categories: {CATEGORIES.join(', ')}
@@ -109,7 +92,6 @@ export default function NewRecipePage() {
             />
           </Field>
 
-          {/* ── Instructions ── */}
           <Field label="Instructions">
             <textarea
               name="instructions"
@@ -118,9 +100,8 @@ export default function NewRecipePage() {
             />
           </Field>
 
-          {/* ── Nutrition ── */}
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Nutrition (per serving)</p>
+            <p className="text-sm font-medium text-gray-700 mb-2 dark:text-gray-300">Nutrition (per serving)</p>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {[
                 { name: 'calories', label: 'Calories' },
@@ -130,19 +111,19 @@ export default function NewRecipePage() {
                 { name: 'fiber_g', label: 'Fiber (g)' },
               ].map(({ name, label }) => (
                 <div key={name}>
-                  <label className="block text-xs text-gray-500 mb-0.5">{label}</label>
+                  <label className="block text-xs text-gray-500 mb-0.5 dark:text-gray-400">{label}</label>
                   <input name={name} type="number" min="0" step="0.1" className={inputCls} placeholder="0" />
                 </div>
               ))}
             </div>
           </div>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && <p className="text-red-600 text-sm dark:text-red-400">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-2">
             <a
-              href="/meal-selector"
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              href="/recipes"
+              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Cancel
             </a>
