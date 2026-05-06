@@ -55,6 +55,11 @@ export type SelectionWithRecipe = MealSelectionRow & {
   recipes: Pick<RecipeRow, 'id' | 'name' | 'type' | 'nutrition'> | null
 }
 
+/** A meal_selection row with the recipe's ingredient list joined — used by shopping list generation. */
+export type SelectionWithIngredients = MealSelectionRow & {
+  recipes: Pick<RecipeRow, 'id' | 'name' | 'ingredients'> | null
+}
+
 /**
  * Fetch all selections for a plan, with each selection's recipe joined inline.
  *
@@ -74,4 +79,22 @@ export async function getSelectionsForPlan(
 
   if (error) return { data: [], error: error.message }
   return { data: (data ?? []) as SelectionWithRecipe[], error: null }
+}
+
+/**
+ * Fetch all selections for a plan with each recipe's ingredients joined.
+ * Used by the shopping-list generation action — needs the full ingredient list,
+ * not just the display fields fetched by getSelectionsForPlan.
+ */
+export async function getSelectionsWithIngredients(
+  supabase: Client,
+  mealPlanId: string,
+): Promise<{ data: SelectionWithIngredients[]; error: string | null }> {
+  const { data, error } = await supabase
+    .from('meal_selections')
+    .select('*, recipes(id, name, ingredients)')
+    .eq('meal_plan_id', mealPlanId)
+
+  if (error) return { data: [], error: error.message }
+  return { data: (data ?? []) as SelectionWithIngredients[], error: null }
 }

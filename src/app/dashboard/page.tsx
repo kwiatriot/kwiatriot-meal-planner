@@ -31,6 +31,12 @@ export default async function DashboardPage() {
           >
             Browse recipes
           </Link>
+          <Link
+            href="/shopping-list"
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+          >
+            This week&apos;s shopping list
+          </Link>
         </div>
         <LogoutButton />
       </div>
