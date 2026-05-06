@@ -29,3 +29,5 @@ next-env.d.ts
 
 prompts/
 summeries/
+recipe-json-output/
+import-results.json
