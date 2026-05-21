@@ -2,28 +2,15 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { GroceryCategory } from '@/types/index'
+import { parseIngredients } from '@/lib/ingredients'
 import type { Json } from '@/types/database.types'
 
-// Parses the ingredient textarea: each line is "name | quantity | unit | category"
-function parseIngredients(raw: string): Json {
-  return raw
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [name = '', qty = '', unit = '', category = ''] = line.split('|').map((s) => s.trim())
-      return {
-        name,
-        quantity: parseFloat(qty) || 0,
-        unit,
-        category: (category as GroceryCategory) || 'other',
-      }
-    }) as Json
-}
-
-export async function addRecipe(formData: FormData): Promise<{ error: string } | never> {
+export async function addRecipe(
+  formData: FormData,
+): Promise<{ ok: false; error: string } | void> {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Unauthorized' }
 
   const ingredients = parseIngredients((formData.get('ingredients') as string) ?? '')
 
@@ -47,7 +34,7 @@ export async function addRecipe(formData: FormData): Promise<{ error: string } |
     nutrition,
   })
 
-  if (error) return { error: error.message }
+  if (error) return { ok: false, error: error.message }
 
   redirect('/recipes')
 }

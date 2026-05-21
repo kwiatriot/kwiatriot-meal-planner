@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { DeleteRecipeButton } from './DeleteRecipeButton'
 import type { Ingredient, NutritionInfo } from '@/types/index'
 
 interface Props {
@@ -39,12 +40,13 @@ export default async function RecipeDetailPage({ params }: Props) {
               </span>
             </div>
             <div className="flex gap-2 shrink-0">
-              <button disabled className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-400 cursor-not-allowed dark:border-gray-700 dark:text-gray-600">
+              <Link
+                href={`/recipes/${recipe.id}/edit`}
+                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
                 Edit
-              </button>
-              <button disabled className="rounded-lg border border-red-200 px-3 py-1.5 text-sm text-red-300 cursor-not-allowed dark:border-red-900 dark:text-red-800">
-                Delete
-              </button>
+              </Link>
+              <DeleteRecipeButton id={recipe.id} />
             </div>
           </div>
         </div>
