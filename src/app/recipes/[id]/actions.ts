@@ -55,25 +55,39 @@ export async function deleteRecipe(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'Unauthorized' }
 
-  // Narrow try/catch around the DELETE only — redirect() must NOT be inside a
-  // catch block or it will never fire (it throws NEXT_REDIRECT as its mechanism).
-  // Python analogue: raise HttpResponseRedirect(...) — same idea, different syntax.
+  // Compute this week's Monday (week_start_date is always a Monday).
+  const today = new Date()
+  const daysSinceMonday = today.getDay() === 0 ? 6 : today.getDay() - 1
+  const currentMonday = new Date(today)
+  currentMonday.setDate(today.getDate() - daysSinceMonday)
+  const currentMondayStr = currentMonday.toISOString().split('T')[0]
+
+  // Block delete if the recipe appears in the current or any future meal plan.
+  const { data: activeSelections } = await supabase
+    .from('meal_selections')
+    .select('id, meal_plans!inner(week_start_date)')
+    .eq('recipe_id', id)
+    .gte('meal_plans.week_start_date', currentMondayStr)
+
+  if (activeSelections && activeSelections.length > 0) {
+    return {
+      ok: false,
+      error: 'This recipe is in a current or upcoming meal plan. Remove it from the plan first.',
+    }
+  }
+
+  // Remove any past meal selections referencing this recipe so the FK (RESTRICT)
+  // doesn't block the delete below.
+  await supabase.from('meal_selections').delete().eq('recipe_id', id)
+
   const { data, error } = await supabase.from('recipes').delete().eq('id', id).select()
 
-  if (error) {
-    if (error.code === '23503') {
-      return {
-        ok: false,
-        error: 'This recipe is currently in a planned meal. Un-select it first.',
-      }
-    }
-    return { ok: false, error: error.message }
-  }
+  if (error) return { ok: false, error: error.message }
 
   if (!data || data.length === 0) {
     return { ok: false, error: 'Recipe not found, or you do not have permission to delete it.' }
   }
 
   revalidatePath('/recipes')
-  redirect('/recipes') // throws NEXT_REDIRECT — this is the natural exit, not an error
+  redirect('/recipes')
 }
