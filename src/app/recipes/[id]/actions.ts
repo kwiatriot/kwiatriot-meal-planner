@@ -24,7 +24,7 @@ export async function updateRecipe(
     fiber_g: parseFloat(formData.get('fiber_g') as string) || 0,
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('recipes')
     .update({
       name: formData.get('name') as string,
@@ -38,8 +38,10 @@ export async function updateRecipe(
       nutrition,
     })
     .eq('id', id)
+    .select()
 
   if (error) return { ok: false, error: error.message }
+  if (!data || data.length === 0) return { ok: false, error: 'Recipe not found, or you do not have permission to edit it.' }
 
   revalidatePath(`/recipes/${id}`)
   revalidatePath('/recipes')
@@ -56,12 +58,9 @@ export async function deleteRecipe(
   // Narrow try/catch around the DELETE only — redirect() must NOT be inside a
   // catch block or it will never fire (it throws NEXT_REDIRECT as its mechanism).
   // Python analogue: raise HttpResponseRedirect(...) — same idea, different syntax.
-  const { error } = await supabase.from('recipes').delete().eq('id', id)
+  const { data, error } = await supabase.from('recipes').delete().eq('id', id).select()
 
   if (error) {
-    // Postgres error code 23503 = foreign_key_violation.
-    // Once migration 004 is applied (ON DELETE RESTRICT), this fires when the
-    // recipe is referenced by an active meal_selection row.
     if (error.code === '23503') {
       return {
         ok: false,
@@ -69,6 +68,10 @@ export async function deleteRecipe(
       }
     }
     return { ok: false, error: error.message }
+  }
+
+  if (!data || data.length === 0) {
+    return { ok: false, error: 'Recipe not found, or you do not have permission to delete it.' }
   }
 
   revalidatePath('/recipes')
