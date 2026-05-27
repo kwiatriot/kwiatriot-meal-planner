@@ -7,35 +7,17 @@ import {
   isValidMonday,
   nextPlanningWeek,
 } from '@/lib/week'
-import { VALID_CATEGORIES } from '@/lib/categorize'
-import type { Category } from '@/lib/categorize'
 import GenerateButton from './GenerateButton'
+import ShoppingList from './ShoppingList'
+import AddItemForm from './AddItemForm'
 
 // Python-dev note on searchParams:
 //   In Next.js 15+, searchParams is a Promise — it's an async dependency that
 //   resolves to the URL query dict. Equivalent to Django's request.GET, but
-//   you have to await it in async server components. The pattern below
-//   (await searchParams, then validate) mirrors the meal-selector page.
+//   you have to await it in async server components.
 
 interface PageProps {
   searchParams: Promise<{ week?: string }>
-}
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  produce: 'Produce',
-  meat_seafood: 'Meat & Seafood',
-  dairy_eggs: 'Dairy & Eggs',
-  pantry: 'Pantry',
-  frozen: 'Frozen',
-  bakery: 'Bakery',
-  beverages: 'Beverages',
-  other: 'Other',
-}
-
-function formatQty(n: number): string {
-  if (Number.isInteger(n)) return String(n)
-  // Strip trailing zeros: 1.50 → "1.5", 1.00 → "1"
-  return n.toFixed(2).replace(/\.?0+$/, '')
 }
 
 export default async function ShoppingListPage({ searchParams }: PageProps) {
@@ -58,7 +40,7 @@ export default async function ShoppingListPage({ searchParams }: PageProps) {
     ? (
         await supabase
           .from('shopping_items')
-          .select('ingredient_name, quantity, unit, category, sort_order')
+          .select('id, ingredient_name, quantity, unit, category, sort_order, checked')
           .eq('meal_plan_id', plan.id)
           .order('sort_order', { ascending: true })
       ).data ?? []
@@ -66,15 +48,8 @@ export default async function ShoppingListPage({ searchParams }: PageProps) {
 
   const hasItems = items.length > 0
 
-  // Group by category preserving the enum's declared display order.
-  // Map is used here (vs a plain object) because iteration order is guaranteed
-  // and the key type is a union — Python equivalent: collections.OrderedDict.
-  type Item = (typeof items)[number]
-  const grouped = new Map<Category, Item[]>()
-  for (const cat of VALID_CATEGORIES) grouped.set(cat, [])
-  for (const item of items) {
-    grouped.get((item.category as Category) ?? 'other')?.push(item)
-  }
+  // Distinct categories already present — used to default the manual add form
+  const existingCategories = [...new Set(items.map((item) => item.category))]
 
   const prevWeek = addWeeks(weekStart, -1)
   const nextWeek = addWeeks(weekStart, 1)
@@ -137,36 +112,14 @@ export default async function ShoppingListPage({ searchParams }: PageProps) {
             </p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {VALID_CATEGORIES.map((cat) => {
-              const catItems = grouped.get(cat) ?? []
-              if (catItems.length === 0) return null
-              return (
-                <section key={cat}>
-                  <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2 dark:text-gray-400">
-                    {CATEGORY_LABELS[cat]}
-                  </h2>
-                  <ul className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100 dark:border-gray-800 dark:bg-gray-900 dark:divide-gray-800">
-                    {catItems.map((item) => (
-                      <li
-                        key={item.ingredient_name}
-                        className="px-4 py-2.5 flex items-baseline gap-3 text-sm"
-                      >
-                        <span className="tabular-nums text-gray-500 dark:text-gray-400 min-w-[5rem] text-right shrink-0">
-                          {item.quantity != null ? formatQty(Number(item.quantity)) : ''}
-                          {item.unit ? ` ${item.unit}` : ''}
-                        </span>
-                        <span className="text-gray-900 dark:text-gray-100">
-                          {item.ingredient_name}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              )
-            })}
-          </div>
+          <ShoppingList initialItems={items} />
         )}
+
+        <AddItemForm
+          planId={plan?.id ?? null}
+          hasItems={hasItems}
+          existingCategories={existingCategories}
+        />
       </div>
     </main>
   )

@@ -100,7 +100,13 @@ export default async function MealSelectorPage({ searchParams }: PageProps) {
               </Link>
             </div>
           </div>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-4">
+            <Link
+              href="/dashboard"
+              className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            >
+              ← Dashboard
+            </Link>
             <Link
               href="/recipes"
               className="text-sm text-blue-600 hover:underline dark:text-blue-400"

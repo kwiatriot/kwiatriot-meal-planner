@@ -58,19 +58,29 @@ export default async function MealSelectorPage() {
   return (
     <main className="min-h-screen bg-gray-50 p-4 sm:p-6 dark:bg-gray-950">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Recipe Library</h1>
-            <p className="text-sm text-gray-500 mt-0.5 dark:text-gray-400">
-              {recipes?.length ?? 0} recipe{(recipes?.length ?? 0) !== 1 ? 's' : ''}
-            </p>
+        <div className="mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Recipe Library</h1>
+              <p className="text-sm text-gray-500 mt-0.5 dark:text-gray-400">
+                {recipes?.length ?? 0} recipe{(recipes?.length ?? 0) !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <Link
+              href="/recipes/new"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              + Add Recipe
+            </Link>
           </div>
-          <Link
-            href="/recipes/new"
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-          >
-            + Add Recipe
-          </Link>
+          <div className="mt-3">
+            <Link
+              href="/dashboard"
+              className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            >
+              ← Dashboard
+            </Link>
+          </div>
         </div>
 
         {(recipes ?? []).length === 0 ? (

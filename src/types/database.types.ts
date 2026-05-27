@@ -131,9 +131,11 @@ export type Database = {
       shopping_items: {
         Row: {
           category: string
+          checked: boolean
           created_at: string | null
           id: string
           ingredient_name: string
+          is_manual: boolean
           meal_plan_id: string
           quantity: number | null
           sort_order: number | null
@@ -141,9 +143,11 @@ export type Database = {
         }
         Insert: {
           category: string
+          checked?: boolean
           created_at?: string | null
           id?: string
           ingredient_name: string
+          is_manual?: boolean
           meal_plan_id: string
           quantity?: number | null
           sort_order?: number | null
@@ -151,9 +155,11 @@ export type Database = {
         }
         Update: {
           category?: string
+          checked?: boolean
           created_at?: string | null
           id?: string
           ingredient_name?: string
+          is_manual?: boolean
           meal_plan_id?: string
           quantity?: number | null
           sort_order?: number | null

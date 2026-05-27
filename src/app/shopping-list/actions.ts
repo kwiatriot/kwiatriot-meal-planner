@@ -76,3 +76,94 @@ export async function generateShoppingList({
   revalidatePath('/shopping-list')
   return { ok: true }
 }
+
+export async function toggleShoppingItem(
+  id: string,
+  checked: boolean,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const { data, error } = await supabase
+    .from('shopping_items')
+    .update({ checked })
+    .eq('id', id)
+    .select()
+
+  if (error) return { ok: false, error: error.message }
+  if (!data || data.length === 0) return { ok: false, error: 'Item not found' }
+
+  revalidatePath('/shopping-list')
+  return { ok: true }
+}
+
+// Parses a free-text quantity input ("2", "1 box", "a handful") into
+// numeric quantity + unit. Numeric prefix → quantity; remainder → unit.
+function parseQuantityInput(input: string): { quantity: number | null; unit: string | null } {
+  const trimmed = input.trim()
+  if (!trimmed) return { quantity: null, unit: null }
+  const match = trimmed.match(/^(\d+(?:\.\d+)?)\s*(.*)$/)
+  if (match) {
+    return { quantity: parseFloat(match[1]), unit: match[2].trim() || null }
+  }
+  return { quantity: null, unit: trimmed }
+}
+
+export async function addManualShoppingItem(
+  planId: string,
+  name: string,
+  quantityInput: string,
+  category: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { ok: false, error: 'Not authenticated' }
+
+  const trimmedName = name.trim()
+  if (!trimmedName) return { ok: false, error: 'Item name is required' }
+
+  // Append after the last existing item so manual items sort to the end
+  const { data: last } = await supabase
+    .from('shopping_items')
+    .select('sort_order')
+    .eq('meal_plan_id', planId)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const nextSortOrder = (last?.sort_order ?? -1) + 1
+  const { quantity, unit } = parseQuantityInput(quantityInput)
+
+  const { data, error } = await supabase
+    .from('shopping_items')
+    .insert({
+      meal_plan_id: planId,
+      ingredient_name: trimmedName,
+      quantity,
+      unit,
+      category,
+      sort_order: nextSortOrder,
+      checked: false,
+      is_manual: true,
+    })
+    .select()
+
+  if (error) {
+    // 23505 = unique_violation — same name+unit already exists in this plan
+    if (error.code === '23505') {
+      return { ok: false, error: `"${trimmedName}" is already on the list with that unit` }
+    }
+    return { ok: false, error: error.message }
+  }
+  if (!data || data.length === 0) return { ok: false, error: 'Insert failed' }
+
+  revalidatePath('/shopping-list')
+  return { ok: true }
+}

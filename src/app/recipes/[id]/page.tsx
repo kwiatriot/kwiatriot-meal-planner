@@ -29,9 +29,14 @@ export default async function RecipeDetailPage({ params }: Props) {
       <div className="mx-auto max-w-2xl space-y-6">
         {/* Header */}
         <div>
-          <Link href="/recipes" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
-            ← Back to library
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+              ← Dashboard
+            </Link>
+            <Link href="/recipes" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+              ← Back to library
+            </Link>
+          </div>
           <div className="mt-3 flex items-start justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{recipe.name}</h1>

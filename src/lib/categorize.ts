@@ -19,6 +19,11 @@ export const VALID_CATEGORIES = [
   'frozen',
   'bakery',
   'beverages',
+  'canned_jarred',
+  'snacks',
+  'condiments',
+  'cleaning',
+  'personal_care',
   'other',
 ] as const
 
@@ -77,7 +82,7 @@ export async function categorizeIngredients(
           content: `Classify each grocery ingredient into exactly one of these categories: ${validList}
 
 Respond with ONLY a valid JSON object mapping each ingredient name to its category. No explanation, no markdown, no code fences.
-Example: {"chicken breast": "meat_seafood", "whole milk": "dairy_eggs", "brown rice": "pantry"}
+Example: {"chicken breast": "meat_seafood", "whole milk": "dairy_eggs", "brown rice": "pantry", "chicken broth": "canned_jarred", "tortilla chips": "snacks"}
 
 Ingredients to classify:
 ${names.join('\n')}`,
